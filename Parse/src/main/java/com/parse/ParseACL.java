@@ -510,6 +510,23 @@ public class ParseACL {
     setRoleWriteAccess(role.getName(), allowed);
   }
 
+  @Override
+  public boolean equals(Object other) {
+    if (!(other instanceof ParseACL)) return false;
+    Map<String,Permissions> users = this.getPermissionsById();
+    Map<String,Permissions> otherUsers = ((ParseACL) other).getPermissionsById();
+    if (users.size() != otherUsers.size()) return false;
+    for (Map.Entry<String, Permissions> u : users.entrySet()) {
+      Permissions otherUserPermission = otherUsers.get(u.getKey());
+      if (otherUserPermission == null) return false;
+      Permissions userPermission = u.getValue();
+      if (userPermission.getReadPermission() != otherUserPermission.getReadPermission()) return false;
+
+      if (userPermission.getWritePermission() != otherUserPermission.getWritePermission()) return false;
+    }
+    return true;
+  }
+
   private static class UserResolutionListener implements GetCallback<ParseObject> {
     private final WeakReference<ParseACL> parent;
 
