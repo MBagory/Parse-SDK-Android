@@ -16,21 +16,21 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
-import org.robolectric.RobolectricGradleTestRunner;
+import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Date;
 import java.util.HashMap;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertTrue;
 
 // For android.util.Base64
-@RunWith(RobolectricGradleTestRunner.class)
-@Config(constants = BuildConfig.class, sdk = 21)
+@RunWith(RobolectricTestRunner.class)
+@Config(constants = BuildConfig.class, sdk = TestHelper.ROBOLECTRIC_SDK_VERSION)
 public class ParseEncoderTest {
 
   ParseEncoderTestClass testClassObject = null;
@@ -101,6 +101,21 @@ public class ParseEncoderTest {
     assertEquals("GeoPoint", geoPointJSON.getString("__type"));
     assertEquals(30, geoPointJSON.getDouble("latitude"), DELTA);
     assertEquals(-20, geoPointJSON.getDouble("longitude"), DELTA);
+  }
+
+  @Test
+  public void testParsePolygon() throws JSONException {
+    List<ParseGeoPoint> points = new ArrayList<ParseGeoPoint>();
+    points.add(new ParseGeoPoint(0,0));
+    points.add(new ParseGeoPoint(0,1));
+    points.add(new ParseGeoPoint(1,1));
+    points.add(new ParseGeoPoint(1,0));
+
+    ParsePolygon parsePolygon = new ParsePolygon(points);
+    JSONObject polygonJSON = (JSONObject) testClassObject.encode(parsePolygon);
+    assertNotNull(polygonJSON);
+    assertEquals("Polygon", polygonJSON.getString("__type"));
+    assertEquals(parsePolygon.coordinatesToJSONArray(), polygonJSON.getJSONArray("coordinates"));
   }
 
   @Test

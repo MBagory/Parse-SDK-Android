@@ -10,6 +10,8 @@ package com.parse;
 
 import android.location.Criteria;
 import android.location.Location;
+import android.os.Parcel;
+import android.os.Parcelable;
 
 import java.util.Locale;
 
@@ -32,7 +34,7 @@ import bolts.Task;
  * </pre>
  */
 
-public class ParseGeoPoint {
+public class ParseGeoPoint implements Parcelable {
   static double EARTH_MEAN_RADIUS_KM = 6371.0;
   static double EARTH_MEAN_RADIUS_MILE = 3958.8;
 
@@ -47,7 +49,7 @@ public class ParseGeoPoint {
 
   /**
    * Creates a new point with the specified latitude and longitude.
-   * 
+   *
    * @param latitude
    *          The point's latitude.
    * @param longitude
@@ -69,8 +71,32 @@ public class ParseGeoPoint {
   }
 
   /**
+   * Creates a new point instance from a {@link Parcel} source. This is used when unparceling a
+   * ParseGeoPoint. Subclasses that need Parcelable behavior should provide their own
+   * {@link android.os.Parcelable.Creator} and override this constructor.
+   *
+   * @param source The recovered parcel.
+   */
+  protected ParseGeoPoint(Parcel source) {
+    this(source, ParseParcelDecoder.get());
+  }
+
+  /**
+   * Creates a new point instance from a {@link Parcel} using the given {@link ParseParcelDecoder}.
+   * The decoder is currently unused, but it might be in the future, plus this is the pattern we
+   * are using in parcelable classes.
+   *
+   * @param source the parcel
+   * @param decoder the decoder
+   */
+  ParseGeoPoint(Parcel source, ParseParcelDecoder decoder) {
+    setLatitude(source.readDouble());
+    setLongitude(source.readDouble());
+  }
+
+  /**
    * Set latitude. Valid range is (-90.0, 90.0). Extremes should not be used.
-   * 
+   *
    * @param latitude
    *          The point's latitude.
    */
@@ -90,7 +116,7 @@ public class ParseGeoPoint {
 
   /**
    * Set longitude. Valid range is (-180.0, 180.0). Extremes should not be used.
-   * 
+   *
    * @param longitude
    *          The point's longitude.
    */
@@ -111,7 +137,7 @@ public class ParseGeoPoint {
   /**
    * Get distance in radians between this point and another {@code ParseGeoPoint}. This is the
    * smallest angular distance between the two points.
-   * 
+   *
    * @param point
    *          {@code ParseGeoPoint} describing the other point being measured against.
    */
@@ -136,7 +162,7 @@ public class ParseGeoPoint {
 
   /**
    * Get distance between this point and another {@code ParseGeoPoint} in kilometers.
-   * 
+   *
    * @param point
    *          {@code ParseGeoPoint} describing the other point being measured against.
    */
@@ -146,7 +172,7 @@ public class ParseGeoPoint {
 
   /**
    * Get distance between this point and another {@code ParseGeoPoint} in kilometers.
-   * 
+   *
    * @param point
    *          {@code ParseGeoPoint} describing the other point being measured against.
    */
@@ -248,7 +274,7 @@ public class ParseGeoPoint {
    *   times for a fix.
    * * For better battery efficiency and faster location fixes, you can set
    *   {@link Criteria#setPowerRequirement(int)}, however, this will result in lower accuracy.
-   * 
+   *
    * @param timeout
    *          The number of milliseconds to allow before timing out.
    * @param criteria
@@ -265,7 +291,46 @@ public class ParseGeoPoint {
   }
 
   @Override
+  public boolean equals(Object obj) {
+    if (obj == null || !(obj instanceof ParseGeoPoint)) {
+      return false;
+    }
+    if (obj == this) {
+      return true;
+    }
+    return ((ParseGeoPoint) obj).getLatitude() == latitude &&
+    ((ParseGeoPoint) obj).getLongitude() == longitude;
+  }
+
+  @Override
   public String toString() {
     return String.format(Locale.US, "ParseGeoPoint[%.6f,%.6f]", latitude, longitude);
   }
+
+  @Override
+  public int describeContents() {
+    return 0;
+  }
+
+  @Override
+  public void writeToParcel(Parcel dest, int flags) {
+    writeToParcel(dest, ParseParcelEncoder.get());
+  }
+
+  void writeToParcel(Parcel dest, ParseParcelEncoder encoder) {
+    dest.writeDouble(latitude);
+    dest.writeDouble(longitude);
+  }
+
+  public final static Creator<ParseGeoPoint> CREATOR = new Creator<ParseGeoPoint>() {
+    @Override
+    public ParseGeoPoint createFromParcel(Parcel source) {
+      return new ParseGeoPoint(source, ParseParcelDecoder.get());
+    }
+
+    @Override
+    public ParseGeoPoint[] newArray(int size) {
+      return new ParseGeoPoint[size];
+    }
+  };
 }

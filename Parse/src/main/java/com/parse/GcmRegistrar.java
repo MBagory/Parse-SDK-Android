@@ -31,15 +31,14 @@ import bolts.Task;
 import bolts.TaskCompletionSource;
 
 /**
- * A class that manages registering for GCM and updating the registration if it is out of date.
+ * A class that manages registering for GCM and updating the registration if it is out of date,
+ * used by {@link com.parse.GcmPushHandler}.
  */
 /** package */ class GcmRegistrar {
   private static final String TAG = "com.parse.GcmRegistrar";
   private static final String REGISTRATION_ID_EXTRA = "registration_id";
   private static final String ERROR_EXTRA = "error";
 
-  // Client-side key for parseplatform@gmail.com. See parse/config/gcm.yml for server-side key.
-  private static final String PARSE_SENDER_ID = "1076345567071";
   private static final String SENDER_ID_EXTRA = "com.parse.push.gcm_sender_id";
 
   public static final String REGISTER_ACTION = "com.google.android.c2dm.intent.REGISTER";
@@ -134,24 +133,33 @@ import bolts.TaskCompletionSource;
       // a 32-bit integer. For `android:value="567327206255"`, this returns a truncated integer
       // because 567327206255 is larger than the largest 32-bit integer.
       Bundle metaData = ManifestInfo.getApplicationMetadata(context);
-      String senderIDs = PARSE_SENDER_ID;
+      String senderID = null;
+
       if (metaData != null) {
         Object senderIDExtra = metaData.get(SENDER_ID_EXTRA);
 
         if (senderIDExtra != null) {
-          String senderID = actualSenderIDFromExtra(senderIDExtra);
+          senderID = actualSenderIDFromExtra(senderIDExtra);
 
-          if (senderID != null) {
-            senderIDs += ("," + senderID);
-          } else {
+          if (senderID == null) {
             PLog.e(TAG, "Found " + SENDER_ID_EXTRA + " <meta-data> element with value \"" +
                 senderIDExtra.toString() + "\", but the value is missing the expected \"id:\" " +
                 "prefix.");
+            return null;
           }
         }
       }
 
-      request = Request.createAndSend(context, senderIDs);
+      if (senderID == null) {
+          PLog.e(TAG, "You must provide " + SENDER_ID_EXTRA + " in your AndroidManifest.xml\n" +
+                  "Make sure to prefix with the value with id:\n\n" +
+                  "<meta-data\n" +
+                  "    android:name=\"com.parse.push.gcm_sender_id\"\n" +
+                  "    android:value=\"id:<YOUR_GCM_SENDER_ID>\" />");
+        return null;
+      }
+
+      request = Request.createAndSend(context, senderID);
       return request.getTask().continueWith(new Continuation<String, Void>() {
         @Override
         public Void then(Task<String> task) {
@@ -174,7 +182,7 @@ import bolts.TaskCompletionSource;
    * Should be called by a broadcast receiver or service to handle the GCM registration response
    * intent (com.google.android.c2dm.intent.REGISTRATION).
    */
-  public Task<Void> handleRegistrationIntentAsync(Intent intent) {
+  Task<Void> handleRegistrationIntentAsync(Intent intent) {
     List<Task<Void>> tasks = new ArrayList<>();
     /*
      * We have to parse the response here because GCM may send us a new registration_id

@@ -18,6 +18,7 @@ package com.parse;
 
 import android.annotation.TargetApi;
 import android.app.Notification;
+import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
@@ -50,19 +51,22 @@ import android.widget.RemoteViews;
   private static final NotificationCompatImpl IMPL;
 
   interface NotificationCompatImpl {
-    public Notification build(Builder b);
+    Notification build(Builder b);
   }
 
   static class NotificationCompatImplBase implements  NotificationCompatImpl {
     @Override
-    public Notification build(Builder b) {
-      Notification result = (Notification) b.mNotification;
-      result.setLatestEventInfo(b.mContext, b.mContentTitle, b.mContentText, b.mContentIntent);
+    public Notification build(Builder builder) {
+      Notification result = builder.mNotification;
+      NotificationCompat.Builder newBuilder = new NotificationCompat.Builder(builder.mContext);
+      newBuilder.setContentTitle(builder.mContentTitle);
+      newBuilder.setContentText(builder.mContentText);
+      newBuilder.setContentIntent(builder.mContentIntent);
       // translate high priority requests into legacy flag
-      if (b.mPriority > PRIORITY_DEFAULT) {
+      if (builder.mPriority > PRIORITY_DEFAULT) {
         result.flags |= FLAG_HIGH_PRIORITY;
       }
-      return result;
+      return newBuilder.build();
     }
   }
 
@@ -91,6 +95,9 @@ import android.widget.RemoteViews;
             style.setSummaryText(staticStyle.mSummaryText);
           }
         }
+      }
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        postJellyBeanBuilder.setChannelId(b.mNotificationChannelId);
       }
       return postJellyBeanBuilder.build();
     }
@@ -121,6 +128,7 @@ import android.widget.RemoteViews;
     Bitmap mLargeIcon;
     int mPriority;
     Style mStyle;
+    String mNotificationChannelId;
 
     Notification mNotification = new Notification();
 
@@ -182,6 +190,14 @@ import android.widget.RemoteViews;
      */
     public Builder setContentTitle(CharSequence title) {
       mContentTitle = limitCharSequenceLength(title);
+      return this;
+    }
+
+    /**
+     * Set the notification channel of the notification, in a standard notification.
+     */
+    public Builder setNotificationChannel(String notificationChannelId) {
+      mNotificationChannelId = notificationChannelId;
       return this;
     }
 
@@ -311,7 +327,7 @@ import android.widget.RemoteViews;
      */
     @Deprecated
     public Notification getNotification() {
-      return (Notification) IMPL.build(this);
+      return IMPL.build(this);
     }
 
     /**
@@ -319,7 +335,7 @@ import android.widget.RemoteViews;
      * object.
      */
     public Notification build() {
-      return (Notification) IMPL.build(this);
+      return IMPL.build(this);
     }
 
     protected static CharSequence limitCharSequenceLength(CharSequence cs) {
