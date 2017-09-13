@@ -682,43 +682,6 @@ public class ParseACLTest {
 
   //endregion
 
-  //region testEquals
-
-  @Test
-  public void testEquals() throws Exception {
-    // Test master key acl
-    ParseACL acl = new ParseACL();
-
-    assertTrue();
-
-  }
-
-  @Test
-  public void testEqualsNull() {
-    assertTrue(ParseTextUtils.equals(null, null));
-  }
-
-  @Test
-  public void testNotEqualsNull() {
-    assertFalse(ParseTextUtils.equals("not null", null));
-    assertFalse(ParseTextUtils.equals(null, "not null"));
-  }
-
-  @Test
-  public void testEqualsString() {
-    String same = "Hello, world!";
-    assertTrue(ParseTextUtils.equals(same, same));
-    assertTrue(ParseTextUtils.equals(same, same + "")); // Hack to compare different instances
-  }
-
-  @Test
-  public void testNotEqualsString() {
-    assertFalse(ParseTextUtils.equals("grantland", "nlutsenko"));
-  }
-
-
-  //endregion
-
   private static void setLazy(ParseUser user) {
     Map<String, String> anonymousAuthData = new HashMap<>();
     anonymousAuthData.put("anonymousToken", "anonymousTest");
