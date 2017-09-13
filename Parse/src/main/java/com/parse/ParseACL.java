@@ -8,12 +8,9 @@
  */
 package com.parse;
 
-<<<<<<< HEAD
-import android.util.Log;
-=======
+
 import android.os.Parcel;
 import android.os.Parcelable;
->>>>>>> parse-community/master
 
 import org.json.JSONException;
 import org.json.JSONObject;

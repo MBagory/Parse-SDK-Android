@@ -5,11 +5,7 @@ buildscript {
         google()
     }
     dependencies {
-<<<<<<< HEAD
-        classpath 'com.android.tools.build:gradle:2.2.2'
-=======
         classpath 'com.android.tools.build:gradle:2.3.3'
->>>>>>> parse-community/master
     }
 }
 
@@ -27,13 +23,6 @@ allprojects {
 }
 
 ext {
-<<<<<<< HEAD
-    compileSdkVersion = 25
-    buildToolsVersion = "25.0.1"
-
-    minSdkVersion = 9
-    targetSdkVersion = 25
-=======
     compileSdkVersion = 26
     buildToolsVersion = "26.0.1"
 
@@ -41,5 +30,5 @@ ext {
 
     minSdkVersion = 14
     targetSdkVersion = 26
->>>>>>> parse-community/master
+
 }
